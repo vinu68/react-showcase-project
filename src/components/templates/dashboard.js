@@ -1,10 +1,11 @@
-import React, { Component, Fragment, useEffect, useState } from 'react';
+import React, { Component, Fragment } from 'react';
+import { Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import constants from '../../config';
 import Filters from '../organisms/filter';
 import ResultList from '../organisms/resultList';
 import Search from '../molecules/search';
-//import Pagination from '../organisms/Pagination'
+import Pagination from '../organisms/pagination';
 
 class Dashboard extends Component {
 	constructor(props) {
@@ -14,11 +15,12 @@ class Dashboard extends Component {
 		this._renderListItems = this._renderListItems.bind(this);
 		this._applyFilters = this._applyFilters.bind(this);
 		this._search = this._search.bind(this);
+		this._getNextPageRecords = this._getNextPageRecords.bind(this);
 
 		this.state = {
 			data: '',
 			info: [],
-			loading: '',
+			loading: true,
 			error: '',
 			sortValue: '',
 			searchValue: '',
@@ -33,20 +35,18 @@ class Dashboard extends Component {
 
 	_renderListItems = () => {
 		if (this.state.data) {
-			return <ResultList resultItem={this.state.data.results} />;
+			return <ResultList resultItem={this.state.data} />;
 		} else {
 			return <p className='noresults'> No Results Found</p>;
 		}
 	};
 
-	
-	_search (event){
-        this.setState({searchValue:event.target.value})
-    }
+	_search(event) {
+		this.setState({ searchValue: event.target.value });
+	}
 
 	_applyFilters(event) {
-		let selectedFilters = this.state.selectFilters;		
-		//console.log('type', event.target.dataset.filtertype);
+		let selectedFilters = this.state.selectFilters;
 		if (event.target.checked) {
 			selectedFilters.push({ type: event.target.dataset.filtertype, value: event.target.value });
 		} else {
@@ -57,18 +57,21 @@ class Dashboard extends Component {
 		this.setState({ selectFilters: selectedFilters });
 	}
 
+	_getNextPageRecords(event) {}
+
 	_getShowRecords(page = '', queryUrl = '') {
 		let url = constants.API_URL + '?page=' + (page ? page : '1') + (queryUrl ? '&' + queryUrl : '');
 		axios.get(url).then(response => {
 			console.log('response', response);
 			this.setState(state => {
-				return { ...state, ...{ data: response.data } };
+				return { ...state, ...{ data: response.data.results }, ...{ info: response.data.info },...{loading:false} };
 			});
 		});
 	}
 
 	render() {
 		console.log('data', this.state.data);
+
 		return (
 			<div class='container'>
 				<div class='row'>
@@ -88,12 +91,11 @@ class Dashboard extends Component {
 										</h2>
 										<hr />
 										{/* BEGIN SEARCH INPUT */}
-										<Search searchClick={this._search} searchValue={this.state.searchValue}/>
+										<Search searchClick={this._search} searchValue={this.state.searchValue} />
 										{/* END SEARCH INPUT */}
 										<p>{''}</p>
 
 										<div class='padding'></div>
-
 
 										<div class='row'>
 											{/* BEGIN ORDER RESULT */}
@@ -125,34 +127,31 @@ class Dashboard extends Component {
 										</div>
 
 										{/*  BEGIN TABLE RESULT */}
-										{this._renderListItems(this.state.data.results)}
+										{this.state.loading ? (
+											<div className='row align-items-center justify-content-center'>
+												<div className='overlay'>
+													<div className='spinnerWrapper'>
+														<Spinner animation='border' role='status'>
+															<span className='sr-only'>Loading...</span>
+														</Spinner>
+														<p>LOADING...</p>
+													</div>
+												</div>
+											</div>
+										) : null}
+										{this._renderListItems(this.state.data)}
 
 										{/* END TABLE RESULT */}
-
 										{/* BEGIN PAGINATION */}
-										<ul class='pagination'>
-											<li class='disabled'>
-												<a href='#'>«</a>
-											</li>
-											<li class='active'>
-												<a href='#'>1</a>
-											</li>
-											<li>
-												<a href='#'>2</a>
-											</li>
-											<li>
-												<a href='#'>3</a>
-											</li>
-											<li>
-												<a href='#'>4</a>
-											</li>
-											<li>
-												<a href='#'>5</a>
-											</li>
-											<li>
-												<a href='#'>»</a>
-											</li>
-										</ul>
+										{this.state.data.length ? (
+											<Pagination
+												count={this.state.info.count}
+												totalPage={this.state.info.pages}
+												page={this.state.page}
+												pageClick={this._getNextPageRecords}
+											/>
+										) : null}
+
 										{/*  END PAGINATION */}
 									</div>
 									{/* END RESULT */}
