@@ -90,7 +90,7 @@ class Dashboard extends Component {
 										{/* BEGIN SEARCH INPUT */}
 										<Search searchClick={this._search} searchValue={this.state.searchValue}/>
 										{/* END SEARCH INPUT */}
-										<p>{'Showing all results matching "web development"'}</p>
+										<p>{''}</p>
 
 										<div class='padding'></div>
 
