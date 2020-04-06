@@ -4,7 +4,7 @@ import constants from '../../config';
 import Filters from '../organisms/filter';
 import ResultList from '../organisms/resultList';
 import Search from '../molecules/search';
-import Pagination from '../organisms/Pagination'
+//import Pagination from '../organisms/Pagination'
 
 class Dashboard extends Component {
 	constructor(props) {
